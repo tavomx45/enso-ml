@@ -33,7 +33,10 @@ models/*
 # Processed data
 data/processed/*
 !data/processed/.gitkeep
-!data/processed/enso_precip.csv
+!data/processed/enso_precip_operational.csv
+!data/processed/operational_model_benchmark_cv.csv
+!data/processed/operational_model_benchmark_holdout.csv
+!data/processed/operational_model_benchmark_latest_forecasts.csv
 
 # Large climate files
 *.nc
