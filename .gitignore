@@ -23,13 +23,17 @@ __pycache__/
 data/raw/*
 !data/raw/.gitkeep
 
-# Processed data
-data/processed/*
-!data/processed/.gitkeep
-
 # Models
 models/*
 !models/.gitkeep
+!models/kernel_ridge_seasonal.joblib
+!models/monthly_climatology.json
+!models/model_metadata.json
+
+# Processed data
+data/processed/*
+!data/processed/.gitkeep
+!data/processed/enso_precip.csv
 
 # Large climate files
 *.nc

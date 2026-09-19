@@ -1,0 +1,33 @@
+{
+  "model_name": "KernelRidge",
+  "kernel": "linear",
+  "alpha": 1.0,
+  "preprocessing": [
+    "SimpleImputer(strategy='mean')",
+    "StandardScaler()"
+  ],
+  "target": "target_anomaly_next3m",
+  "target_description": "Mean monthly precipitation anomaly over months t+1, t+2 and t+3.",
+  "features": [
+    "nino12",
+    "nino12_ma3",
+    "nino3",
+    "nino3_ma3",
+    "nino34",
+    "nino34_ma3",
+    "nino4",
+    "nino4_ma3",
+    "soi",
+    "soi_ma3",
+    "tni",
+    "tni_ma3",
+    "target_month_sin",
+    "target_month_cos",
+    "precip_anomaly",
+    "precip_anomaly_ma3"
+  ],
+  "training_samples": 892,
+  "training_feature_start": "1950-03-01",
+  "training_feature_end": "2025-09-01",
+  "trained_at_utc": "2026-09-19T13:56:40.677623+00:00"
+}
