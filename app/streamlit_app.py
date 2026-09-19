@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
 
@@ -9,8 +8,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
+
 # ---------------------------------------------------------------------
-# Project imports
+# Project paths
 # ---------------------------------------------------------------------
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -18,18 +18,19 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from enso_ml.config import ProjectPaths
-from enso_ml.data import load_enso_precipitation
-from enso_ml.features import MODEL_FEATURES, build_inference_frame
-from enso_ml.model import load_model, predict
-from enso_ml.pipeline import load_climatology
+PROCESSED = ROOT / "data" / "processed"
+
+OPERATIONAL_DATA = PROCESSED / "enso_precip_operational.csv"
+CV_FILE = PROCESSED / "operational_model_benchmark_cv.csv"
+HOLDOUT_FILE = PROCESSED / "operational_model_benchmark_holdout.csv"
+FORECAST_FILE = PROCESSED / "operational_model_benchmark_latest_forecasts.csv"
 
 
 # ---------------------------------------------------------------------
-# Page configuration
+# Page config
 # ---------------------------------------------------------------------
 st.set_page_config(
-    page_title="ENSO Rainfall Forecast",
+    page_title="ENSO Rainfall Outlook · Ecuador",
     page_icon="🌊",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -43,77 +44,73 @@ st.markdown(
     """
     <style>
         .block-container {
-            padding-top: 1.5rem;
+            padding-top: 1.4rem;
             padding-bottom: 3rem;
-            max-width: 1400px;
+            max-width: 1450px;
         }
 
         .hero {
-            padding: 2rem 2.2rem;
-            border-radius: 24px;
+            padding: 2.1rem 2.3rem;
+            border-radius: 26px;
             margin-bottom: 1.2rem;
             background:
-                linear-gradient(120deg, rgba(14, 116, 144, 0.96), rgba(30, 64, 175, 0.92));
+                radial-gradient(circle at 85% 15%, rgba(56,189,248,0.28), transparent 35%),
+                linear-gradient(120deg, rgba(15,118,110,0.98), rgba(30,64,175,0.95));
             color: white;
-            box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
+            box-shadow: 0 18px 50px rgba(15,23,42,0.22);
         }
 
         .hero .eyebrow {
             font-size: 0.78rem;
             letter-spacing: 0.15em;
-            font-weight: 700;
+            font-weight: 800;
             opacity: 0.85;
-            margin-bottom: 0.6rem;
+            margin-bottom: 0.55rem;
         }
 
         .hero h1 {
             margin: 0;
-            font-size: clamp(2rem, 4vw, 3.4rem);
+            font-size: clamp(2rem, 4.2vw, 3.6rem);
             line-height: 1.02;
         }
 
         .hero p {
-            margin-top: 0.8rem;
-            margin-bottom: 0;
-            max-width: 850px;
-            font-size: 1.05rem;
-            opacity: 0.92;
+            margin: 0.9rem 0 0 0;
+            max-width: 950px;
+            font-size: 1.06rem;
+            opacity: 0.94;
         }
 
-        .forecast-card {
-            padding: 1.15rem 1.3rem;
+        .info-card {
+            border: 1px solid rgba(148,163,184,0.22);
             border-radius: 18px;
-            border: 1px solid rgba(148, 163, 184, 0.25);
-            background: rgba(255, 255, 255, 0.03);
+            padding: 1rem 1.2rem;
+            background: rgba(255,255,255,0.025);
             margin-bottom: 0.8rem;
         }
 
-        .forecast-card strong {
-            font-size: 1.05rem;
+        .wet-card {
+            border-left: 5px solid #38bdf8;
         }
 
-        .positive {
-            border-left: 5px solid #0284c7;
-        }
-
-        .negative {
+        .warning-card {
             border-left: 5px solid #f59e0b;
         }
 
-        .neutral {
-            border-left: 5px solid #64748b;
+        .success-card {
+            border-left: 5px solid #22c55e;
         }
 
-        .small-note {
-            font-size: 0.88rem;
+        .muted {
             opacity: 0.78;
+            font-size: 0.9rem;
         }
 
         div[data-testid="stMetric"] {
-            border: 1px solid rgba(148, 163, 184, 0.22);
+            border: 1px solid rgba(148,163,184,0.20);
             border-radius: 18px;
-            padding: 0.75rem 1rem;
-            background: rgba(255, 255, 255, 0.02);
+            padding: 0.8rem 1rem;
+            background: rgba(255,255,255,0.02);
         }
 
         div[data-testid="stMetricValue"] {
@@ -126,150 +123,129 @@ st.markdown(
 
 
 # ---------------------------------------------------------------------
-# Cached loaders
+# Loaders
 # ---------------------------------------------------------------------
-@st.cache_resource(show_spinner=False)
-def load_artifacts(
-    model_path: str,
-    model_mtime: float,
-    climatology_path: str,
-    climatology_mtime: float,
-):
-    # mtimes are intentionally part of the cache key.
-    del model_mtime, climatology_mtime
-
-    model = load_model(model_path)
-    climatology = load_climatology(climatology_path)
-
-    return model, climatology
+@st.cache_data(show_spinner=False)
+def load_csv(path: str) -> pd.DataFrame:
+    return pd.read_csv(path)
 
 
 @st.cache_data(show_spinner=False)
-def load_project_data(
-    processed_dir: str,
-    climatology_items: tuple[tuple[int, float], ...],
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    climatology = dict(climatology_items)
-
-    raw = load_enso_precipitation(processed_dir)
-    inference = build_inference_frame(
-        raw,
-        climatology=climatology,
-    )
-
-    return raw, inference
+def load_operational_data(path: str) -> pd.DataFrame:
+    return pd.read_csv(path, parse_dates=["date"])
 
 
-def read_metadata(path: Path) -> dict:
-    if not path.exists():
-        return {}
+required_files = [
+    OPERATIONAL_DATA,
+    CV_FILE,
+    HOLDOUT_FILE,
+    FORECAST_FILE,
+]
 
-    return json.loads(
-        path.read_text(encoding="utf-8")
-    )
-
-
-def anomaly_message(value: float) -> tuple[str, str]:
-    if value < 0:
-        return (
-            "negative",
-            "El modelo proyecta una ventana más seca que la climatología de referencia.",
-        )
-
-    if value > 0:
-        return (
-            "positive",
-            "El modelo proyecta una ventana más húmeda que la climatología de referencia.",
-        )
-
-    return (
-        "neutral",
-        "El modelo proyecta una ventana cercana a la climatología de referencia.",
-    )
-
-
-# ---------------------------------------------------------------------
-# Load model and data
-# ---------------------------------------------------------------------
-paths = ProjectPaths.from_root(ROOT)
-
-missing_artifacts = [
-    path
-    for path in [
-        paths.model_file,
-        paths.climatology_file,
-    ]
+missing = [
+    str(path.relative_to(ROOT))
+    for path in required_files
     if not path.exists()
 ]
 
-if missing_artifacts:
+if missing:
     st.error(
-        "No encuentro los artefactos del modelo. "
-        "Entrena primero el pipeline desde la raíz del proyecto."
+        "Faltan archivos de la versión operacional necesarios para la app."
     )
     st.code(
-        "PYTHONPATH=src uv run python -m enso_ml.train",
-        language="bash",
+        "\n".join(missing),
+        language="text",
+    )
+    st.info(
+        "Ejecuta primero el flujo operacional y el mini-benchmark, "
+        "y luego agrega estos CSV específicos al repositorio."
     )
     st.stop()
 
-model, climatology = load_artifacts(
-    str(paths.model_file),
-    paths.model_file.stat().st_mtime,
-    str(paths.climatology_file),
-    paths.climatology_file.stat().st_mtime,
+
+operational = load_operational_data(
+    str(OPERATIONAL_DATA)
 )
+cv = load_csv(str(CV_FILE))
+holdout = load_csv(str(HOLDOUT_FILE))
+forecasts = load_csv(str(FORECAST_FILE))
 
-raw_df, inference_df = load_project_data(
-    str(paths.data_processed),
-    tuple(sorted(climatology.items())),
-)
 
-metadata = read_metadata(paths.metadata_file)
+# ---------------------------------------------------------------------
+# Derived presentation values
+# ---------------------------------------------------------------------
+selected_model = "ElasticNet"
 
-if inference_df.empty:
-    st.error("No fue posible construir una fila válida de inferencia.")
+elastic_row = forecasts.loc[
+    forecasts["model"] == selected_model
+]
+
+if elastic_row.empty:
+    st.error(
+        f"No se encontró {selected_model} en el archivo de pronósticos."
+    )
     st.stop()
 
-latest = inference_df.iloc[-1:]
-latest_row = latest.iloc[0]
+elastic_row = elastic_row.iloc[0]
 
-forecast = float(
-    predict(
-        model,
-        latest,
-    )[0]
+persistence_row = forecasts.loc[
+    forecasts["model"] == "3M Persistence"
+].iloc[0]
+
+ml_forecasts = forecasts.loc[
+    forecasts["model"] != "3M Persistence"
+].copy()
+
+selected_forecast = float(
+    elastic_row["forecast_anomaly_mm_per_month"]
+)
+persistence_forecast = float(
+    persistence_row["forecast_anomaly_mm_per_month"]
+)
+selected_percentile = float(
+    elastic_row["historical_percentile"]
 )
 
-persistence = float(
-    latest_row["precip_anomaly_ma3"]
+ml_min = float(
+    ml_forecasts["forecast_anomaly_mm_per_month"].min()
+)
+ml_max = float(
+    ml_forecasts["forecast_anomaly_mm_per_month"].max()
 )
 
-observation_date = pd.Timestamp(
-    latest_row["date"]
+observation_month = pd.Timestamp(
+    elastic_row["observation_month"]
 )
 target_start = pd.Timestamp(
-    latest_row["target_start"]
-)
-target_center = pd.Timestamp(
-    latest_row["target_center"]
+    elastic_row["target_start"]
 )
 target_end = pd.Timestamp(
-    latest_row["target_end"]
+    elastic_row["target_end"]
 )
 
-status_class, interpretation = anomaly_message(
-    forecast
-)
+latest = operational.sort_values("date").tail(1).iloc[0]
+
+elastic_cv = cv.loc[
+    cv["model"] == selected_model
+].iloc[0]
+
+elastic_holdout = holdout.loc[
+    holdout["model"] == selected_model
+].iloc[0]
+
+persistence_holdout = holdout.loc[
+    holdout["model"] == "3M Persistence"
+].iloc[0]
 
 
 # ---------------------------------------------------------------------
 # Sidebar
 # ---------------------------------------------------------------------
 with st.sidebar:
-    st.title("🌊 ENSO Forecast")
+    st.title("🌊 ENSO · Ecuador")
     st.caption(
-        "Predicción estacional de precipitación para la región costera seleccionada de Ecuador."
+        "Outlook estacional de precipitación con datos actualizados "
+        "hasta agosto de 2026."
     )
 
     st.divider()
@@ -278,25 +254,25 @@ with st.sidebar:
         "Historia visible",
         options=[3, 5, 10, 20, 30],
         value=10,
-        help="Número de años mostrados en los gráficos históricos.",
     )
 
-    show_persistence = st.toggle(
-        "Mostrar baseline de persistencia",
-        value=True,
+    st.markdown("**Último mes observado**")
+    st.write(observation_month.strftime("%B %Y"))
+
+    st.markdown("**Ventana del outlook**")
+    st.write(
+        f"{target_start.strftime('%b %Y')} – "
+        f"{target_end.strftime('%b %Y')}"
     )
 
     st.divider()
 
-    st.markdown("**Última observación**")
-    st.write(
-        observation_date.strftime("%B %Y")
-    )
+    st.markdown("**Modelo operacional seleccionado**")
+    st.write("ElasticNet")
 
-    st.markdown("**Ventana pronosticada**")
-    st.write(
-        f"{target_start.strftime('%b %Y')} – "
-        f"{target_end.strftime('%b %Y')}"
+    st.caption(
+        "Selección por menor RMSE medio en validación temporal pre-2018. "
+        "La persistencia permanece como baseline obligatorio."
     )
 
     if st.button(
@@ -304,27 +280,22 @@ with st.sidebar:
         use_container_width=True,
     ):
         st.cache_data.clear()
-        st.cache_resource.clear()
         st.rerun()
-
-    st.divider()
-    st.caption(
-        "Modelo: Kernel Ridge lineal · 16 variables S2"
-    )
 
 
 # ---------------------------------------------------------------------
 # Hero
 # ---------------------------------------------------------------------
 st.markdown(
-    """
+    f"""
     <div class="hero">
-        <div class="eyebrow">MACHINE LEARNING · ENSO · ECUADOR</div>
-        <h1>Pronóstico estacional de precipitación</h1>
+        <div class="eyebrow">OUTLOOK OPERACIONAL · ENSO · ERA5-LAND · ECUADOR</div>
+        <h1>Precipitación estacional Sep–Nov 2026</h1>
         <p>
-            Estimación de la anomalía media mensual de precipitación durante
-            los próximos tres meses, combinando indicadores ENSO,
-            estacionalidad y memoria reciente de precipitación.
+            El sistema fue actualizado con información climática disponible
+            hasta agosto de 2026. Tras reconstruir una versión operacional
+            consistente y repetir la validación temporal, ElasticNet obtuvo
+            el menor RMSE medio entre los candidatos ML en validación cruzada.
         </p>
     </div>
     """,
@@ -333,46 +304,76 @@ st.markdown(
 
 
 # ---------------------------------------------------------------------
-# Top metrics
+# Main metrics
 # ---------------------------------------------------------------------
-col1, col2, col3, col4 = st.columns(4)
+c1, c2, c3, c4 = st.columns(4)
 
-with col1:
+with c1:
     st.metric(
-        "Kernel Ridge",
-        f"{forecast:+.1f} mm/mes",
-        help="Anomalía media mensual prevista para los próximos 3 meses.",
+        "ElasticNet · Outlook ML",
+        f"{selected_forecast:+.1f} mm/mes",
+        help=(
+            "Anomalía media mensual estimada para Sep–Nov 2026. "
+            "Valor positivo = más húmedo que la climatología de referencia."
+        ),
     )
 
-with col2:
+with c2:
     st.metric(
         "Persistencia 3M",
-        f"{persistence:+.1f} mm/mes",
-        help="Baseline: supone que los próximos 3 meses se parecerán a los 3 meses recientes.",
+        f"{persistence_forecast:+.1f} mm/mes",
+        help=(
+            "Baseline simple basado en la anomalía media de los 3 meses recientes."
+        ),
     )
 
-with col3:
+with c3:
     st.metric(
-        "Diferencia modelo–baseline",
-        f"{forecast - persistence:+.1f} mm/mes",
+        "Rango modelos ML",
+        f"{ml_min:+.0f} a {ml_max:+.0f}",
+        help=(
+            "Rango de pronósticos de los seis modelos ML del mini-benchmark."
+        ),
     )
 
-with col4:
+with c4:
     st.metric(
-        "Horizonte",
-        "3 meses",
-        help="Ventana objetivo: t+1, t+2 y t+3.",
+        "Percentil histórico",
+        f"{selected_percentile:.1f}%",
+        help=(
+            "Posición del pronóstico ElasticNet dentro de la distribución "
+            "histórica del target."
+        ),
     )
+
 
 st.markdown(
     f"""
-    <div class="forecast-card {status_class}">
-        <strong>Lectura del pronóstico</strong><br>
-        {interpretation}
-        <div class="small-note">
-            Un valor de {forecast:+.1f} mm/mes no significa lluvia negativa:
-            expresa la diferencia respecto de la climatología mensual de referencia.
+    <div class="info-card wet-card">
+        <strong>Lectura del outlook</strong><br>
+        ElasticNet estima una anomalía media de
+        <strong>{selected_forecast:+.1f} mm/mes</strong> durante
+        septiembre–noviembre de 2026. Los seis modelos ML coinciden en una
+        señal positiva, con valores entre <strong>{ml_min:+.0f}</strong> y
+        <strong>{ml_max:+.0f} mm/mes</strong>.
+        <div class="muted">
+            Esto no significa que cada mes tendrá exactamente esa anomalía.
+            El target es el promedio de las anomalías de los tres meses futuros.
         </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    f"""
+    <div class="info-card warning-card">
+        <strong>Incertidumbre importante</strong><br>
+        La persistencia de 3 meses proyecta solo
+        <strong>{persistence_forecast:+.1f} mm/mes</strong> y fue más robusta
+        que los modelos ML en el holdout 2018–2025. Por ello, el valor de
+        ElasticNet se presenta como <strong>outlook ML experimental</strong>,
+        no como una predicción determinista.
     </div>
     """,
     unsafe_allow_html=True,
@@ -382,188 +383,249 @@ st.markdown(
 # ---------------------------------------------------------------------
 # Tabs
 # ---------------------------------------------------------------------
-tab_forecast, tab_history, tab_model, tab_method = st.tabs(
+tab_outlook, tab_validation, tab_context, tab_academic, tab_method = st.tabs(
     [
-        "🔭 Pronóstico",
-        "📈 Contexto histórico",
-        "🧠 Modelo",
+        "🌦 Outlook 2026",
+        "📊 Validación operacional",
+        "📈 Contexto climático",
+        "🧠 Modelo académico",
         "🧪 Metodología",
     ]
 )
 
 
 # ---------------------------------------------------------------------
-# Forecast tab
+# Tab 1: Outlook
 # ---------------------------------------------------------------------
-with tab_forecast:
+with tab_outlook:
     st.subheader(
         f"Ventana objetivo: "
-        f"{target_start.strftime('%b %Y')} – "
-        f"{target_end.strftime('%b %Y')}"
+        f"{target_start.strftime('%B %Y')} – "
+        f"{target_end.strftime('%B %Y')}"
     )
 
     left, right = st.columns(
-        [1, 1.45],
+        [1.15, 1],
         gap="large",
     )
 
     with left:
-        comparison_df = pd.DataFrame(
-            {
-                "Método": [
-                    "Kernel Ridge",
-                    "Persistencia 3M",
-                ],
-                "Anomalía (mm/mes)": [
-                    forecast,
-                    persistence,
-                ],
-            }
+        chart_df = forecasts.copy()
+        chart_df["Tipo"] = chart_df["model"].apply(
+            lambda value: (
+                "Baseline"
+                if value == "3M Persistence"
+                else "Machine Learning"
+            )
         )
 
-        fig_bar = px.bar(
-            comparison_df,
-            x="Método",
-            y="Anomalía (mm/mes)",
+        fig = px.bar(
+            chart_df,
+            x="model",
+            y="forecast_anomaly_mm_per_month",
+            color="Tipo",
             text_auto=".1f",
-            title="Modelo vs baseline",
+            title="Pronóstico por modelo",
+            labels={
+                "model": "Modelo",
+                "forecast_anomaly_mm_per_month": "Anomalía (mm/mes)",
+            },
         )
-        fig_bar.add_hline(
+        fig.add_hline(
             y=0,
             line_dash="dash",
         )
-        fig_bar.update_layout(
-            showlegend=False,
+        fig.update_layout(
+            xaxis_tickangle=-30,
+            legend_title_text="",
             margin=dict(
                 l=10,
                 r=10,
                 t=55,
-                b=10,
+                b=80,
             ),
         )
         st.plotly_chart(
-            fig_bar,
+            fig,
             use_container_width=True,
         )
 
     with right:
-        cutoff = (
-            observation_date
-            - pd.DateOffset(
-                years=history_years
-            )
+        st.markdown("#### ¿Por qué destacamos ElasticNet?")
+
+        st.write(
+            "Al actualizar las fuentes climáticas para llegar hasta agosto "
+            "de 2026, fue necesario reconstruir un dataset operacional "
+            "consistente y volver a comparar los modelos."
         )
 
-        history = inference_df.loc[
-            inference_df["date"] >= cutoff
-        ].copy()
-
-        fig_history = go.Figure()
-
-        fig_history.add_trace(
-            go.Scatter(
-                x=history["date"],
-                y=history["precip_anomaly"],
-                mode="lines",
-                name="Anomalía observada",
-            )
-        )
-
-        fig_history.add_trace(
-            go.Scatter(
-                x=[target_center],
-                y=[forecast],
-                mode="markers",
-                marker=dict(size=13),
-                name="Kernel Ridge",
-            )
-        )
-
-        if show_persistence:
-            fig_history.add_trace(
-                go.Scatter(
-                    x=[target_center],
-                    y=[persistence],
-                    mode="markers",
-                    marker=dict(size=12),
-                    name="Persistencia 3M",
-                )
-            )
-
-        fig_history.add_hline(
-            y=0,
-            line_dash="dash",
-        )
-
-        fig_history.update_layout(
-            title=(
-                "Anomalía histórica y pronóstico "
-                "en el centro de la ventana futura"
+        st.metric(
+            "ElasticNet · CV RMSE",
+            f"{float(elastic_cv['RMSE']):.2f}",
+            delta=(
+                f"{float(elastic_cv['RMSE']) - float(cv.iloc[0]['RMSE']):+.2f}"
+                if cv.iloc[0]["model"] != selected_model
+                else "mejor ML por CV"
             ),
-            xaxis_title="Fecha",
-            yaxis_title="Anomalía (mm/mes)",
-            hovermode="x unified",
-            margin=dict(
-                l=10,
-                r=10,
-                t=55,
-                b=10,
-            ),
+            delta_color="off",
         )
 
-        st.plotly_chart(
-            fig_history,
-            use_container_width=True,
+        st.write(
+            "ElasticNet obtuvo el menor RMSE medio entre los candidatos ML "
+            "durante la validación temporal pre-2018. Sin embargo, su "
+            "desempeño en 2018–2025 fue más débil que la persistencia."
         )
 
-    st.info(
-        "El pronóstico representa el promedio de las anomalías de "
-        "los meses t+1, t+2 y t+3. No es una predicción de un único mes."
+        st.info(
+            "La selección del modelo se hizo por CV temporal pre-2018. "
+            "El holdout se conserva como evaluación posterior y no se usa "
+            "para escoger retroactivamente otro modelo."
+        )
+
+    st.markdown("#### Consenso y dispersión de los modelos")
+
+    st.dataframe(
+        forecasts[
+            [
+                "model",
+                "forecast_anomaly_mm_per_month",
+                "historical_percentile",
+            ]
+        ].rename(
+            columns={
+                "model": "Modelo",
+                "forecast_anomaly_mm_per_month": "Outlook (mm/mes)",
+                "historical_percentile": "Percentil histórico",
+            }
+        ),
+        hide_index=True,
+        use_container_width=True,
     )
 
 
 # ---------------------------------------------------------------------
-# Historical context tab
+# Tab 2: Validation
 # ---------------------------------------------------------------------
-with tab_history:
-    st.subheader("Contexto climático reciente")
+with tab_validation:
+    st.subheader("Validación temporal de la versión operacional")
+
+    st.markdown(
+        """
+        Al cambiar a fuentes operacionales consistentes, el dataset ENSO
+        comienza en 1982 y se redujo el número de muestras. Para evitar
+        sobreestimar el desempeño, se repitió la comparación con
+        `TimeSeriesSplit(n_splits=5, gap=2)`.
+        """
+    )
+
+    c1, c2, c3 = st.columns(3)
+
+    with c1:
+        st.metric(
+            "ElasticNet · CV RMSE",
+            f"{float(elastic_cv['RMSE']):.2f}",
+        )
+
+    with c2:
+        st.metric(
+            "ElasticNet · Holdout RMSE",
+            f"{float(elastic_holdout['RMSE']):.2f}",
+        )
+
+    with c3:
+        st.metric(
+            "Persistencia · Holdout RMSE",
+            f"{float(persistence_holdout['RMSE']):.2f}",
+        )
+
+    st.markdown("#### CV temporal pre-2018")
+
+    cv_display = cv.copy()
+    st.dataframe(
+        cv_display,
+        hide_index=True,
+        use_container_width=True,
+    )
+
+    st.markdown("#### Holdout 2018–2025")
+
+    st.dataframe(
+        holdout,
+        hide_index=True,
+        use_container_width=True,
+    )
+
+    fig_holdout = px.bar(
+        holdout.sort_values("RMSE"),
+        x="model",
+        y="RMSE",
+        text_auto=".1f",
+        title="RMSE en holdout 2018–2025",
+        labels={
+            "model": "Modelo",
+            "RMSE": "RMSE",
+        },
+    )
+    fig_holdout.update_layout(
+        xaxis_tickangle=-30,
+        margin=dict(
+            l=10,
+            r=10,
+            t=55,
+            b=80,
+        ),
+    )
+    st.plotly_chart(
+        fig_holdout,
+        use_container_width=True,
+    )
+
+    st.markdown(
+        """
+        **Conclusión:** ElasticNet fue el mejor candidato ML según la regla
+        de selección por CV, pero la persistencia fue más robusta durante
+        2018–2025. La versión operacional se presenta por tanto como una
+        extensión experimental del proyecto, no como un sistema determinista.
+        """
+    )
+
+
+# ---------------------------------------------------------------------
+# Tab 3: Context
+# ---------------------------------------------------------------------
+with tab_context:
+    st.subheader("Contexto climático hasta agosto de 2026")
 
     cutoff = (
-        observation_date
+        operational["date"].max()
         - pd.DateOffset(
             years=history_years
         )
     )
 
-    recent = raw_df.loc[
-        raw_df["date"] >= cutoff
+    recent = operational.loc[
+        operational["date"] >= cutoff
     ].copy()
 
-    recent_inference = inference_df.loc[
-        inference_df["date"] >= cutoff
-    ].copy()
+    latest_metrics = st.columns(5)
 
-    fig_precip = px.line(
-        recent_inference,
-        x="date",
-        y="precip_anomaly",
-        title="Anomalía mensual de precipitación",
-        labels={
-            "date": "Fecha",
-            "precip_anomaly": "Anomalía (mm)",
-        },
-    )
-    fig_precip.add_hline(
-        y=0,
-        line_dash="dash",
-    )
-    fig_precip.update_layout(
-        hovermode="x unified",
-    )
-    st.plotly_chart(
-        fig_precip,
-        use_container_width=True,
-    )
+    labels = [
+        ("Niño 1+2", "nino12"),
+        ("Niño 3", "nino3"),
+        ("Niño 3.4", "nino34"),
+        ("Niño 4", "nino4"),
+        ("SOI", "soi"),
+    ]
+
+    for column, (label, key) in zip(
+        latest_metrics,
+        labels,
+    ):
+        with column:
+            st.metric(
+                label,
+                f"{float(latest[key]):+.2f}",
+            )
 
     c1, c2 = st.columns(2)
 
@@ -571,19 +633,21 @@ with tab_history:
         fig_nino = px.line(
             recent,
             x="date",
-            y="nino34",
-            title="Niño 3.4",
+            y=[
+                "nino3",
+                "nino34",
+                "nino4",
+            ],
+            title="Índices Niño recientes",
             labels={
                 "date": "Fecha",
-                "nino34": "Anomalía Niño 3.4",
+                "value": "Anomalía",
+                "variable": "Índice",
             },
         )
         fig_nino.add_hline(
             y=0,
             line_dash="dash",
-        )
-        fig_nino.update_layout(
-            hovermode="x unified",
         )
         st.plotly_chart(
             fig_nino,
@@ -605,179 +669,179 @@ with tab_history:
             y=0,
             line_dash="dash",
         )
-        fig_soi.update_layout(
-            hovermode="x unified",
-        )
         st.plotly_chart(
             fig_soi,
             use_container_width=True,
         )
 
+    # Rebuild precipitation anomalies for visualization using 1950-2010 reference
+    # is not possible from this shortened operational file alone. We therefore
+    # show observed precipitation directly here.
+    fig_precip = px.line(
+        recent,
+        x="date",
+        y="precipitation_mm",
+        title="Precipitación mensual observada · región costera seleccionada",
+        labels={
+            "date": "Fecha",
+            "precipitation_mm": "Precipitación (mm)",
+        },
+    )
+    st.plotly_chart(
+        fig_precip,
+        use_container_width=True,
+    )
+
+    st.caption(
+        "La actualización operacional combina índices CPC consistentes con "
+        "precipitación ERA5-Land agregada hasta agosto de 2026."
+    )
+
 
 # ---------------------------------------------------------------------
-# Model tab
+# Tab 4: Academic model
 # ---------------------------------------------------------------------
-with tab_model:
-    st.subheader("Modelo seleccionado")
+with tab_academic:
+    st.subheader("Modelo académico principal")
+
+    st.markdown(
+        """
+        La versión académica original fue desarrollada con una serie histórica
+        más larga y 16 variables S2, incluyendo TNI. En ese contexto,
+        **Kernel Ridge** fue el mejor modelo ML por RMSE temporal.
+        """
+    )
 
     c1, c2, c3 = st.columns(3)
 
     with c1:
         st.metric(
-            "Algoritmo",
+            "Modelo",
             "Kernel Ridge",
         )
 
     with c2:
         st.metric(
-            "Kernel",
-            "Linear",
+            "Features",
+            "16",
         )
 
     with c3:
         st.metric(
-            "Features",
-            str(len(MODEL_FEATURES)),
+            "Target",
+            "media t+1:t+3",
         )
 
-    st.markdown(
-        """
-        El pipeline final reproduce el mejor candidato encontrado durante
-        el benchmark temporal con PyCaret:
-        """
-    )
-
-    st.code(
-        """SimpleImputer(strategy="mean")
-    ↓
-StandardScaler()
-    ↓
-KernelRidge(alpha=1, kernel="linear")""",
-        language="text",
-    )
-
-    st.markdown("#### Variables utilizadas")
-
-    feature_groups = {
-        "ENSO actual": [
-            "nino12",
-            "nino3",
-            "nino34",
-            "nino4",
-            "soi",
-            "tni",
-        ],
-        "ENSO media móvil 3M": [
-            "nino12_ma3",
-            "nino3_ma3",
-            "nino34_ma3",
-            "nino4_ma3",
-            "soi_ma3",
-            "tni_ma3",
-        ],
-        "Estacionalidad": [
-            "target_month_sin",
-            "target_month_cos",
-        ],
-        "Precipitación local": [
-            "precip_anomaly",
-            "precip_anomaly_ma3",
-        ],
-    }
-
-    for group, values in feature_groups.items():
-        with st.expander(
-            f"{group} · {len(values)} variables"
-        ):
-            st.write(values)
-
-    st.markdown("#### Evaluación histórica")
-
-    evaluation_df = pd.DataFrame(
+    academic_results = pd.DataFrame(
         [
             {
                 "Método": "3M Persistence",
-                "RMSE": 49.31,
-                "R²": 0.255,
+                "RMSE 2018–2025": 49.31,
+                "R² 2018–2025": 0.255,
             },
             {
                 "Método": "Kernel Ridge",
-                "RMSE": 51.55,
-                "R²": 0.186,
+                "RMSE 2018–2025": 51.55,
+                "R² 2018–2025": 0.186,
             },
             {
                 "Método": "Linear Regression",
-                "RMSE": 52.25,
-                "R²": 0.164,
+                "RMSE 2018–2025": 52.25,
+                "R² 2018–2025": 0.164,
             },
             {
                 "Método": "Climatología",
-                "RMSE": 64.91,
-                "R²": -0.291,
+                "RMSE 2018–2025": 64.91,
+                "R² 2018–2025": -0.291,
             },
         ]
     )
 
     st.dataframe(
-        evaluation_df,
+        academic_results,
         hide_index=True,
         use_container_width=True,
     )
 
-    st.caption(
-        "Resultados del benchmark post-hoc 2018–2025. "
-        "La persistencia fue un baseline muy competitivo; Kernel Ridge "
-        "fue el mejor modelo de Machine Learning."
+    st.markdown(
+        """
+        El modelo académico y la versión operacional responden a dos objetivos
+        relacionados pero distintos:
+
+        - **Académico:** evaluar si ENSO contiene señal útil para anticipar
+          precipitación estacional.
+        - **Operacional:** actualizar el sistema con fuentes disponibles en
+          tiempo casi real y producir un outlook actual.
+        """
     )
 
-    if metadata:
-        with st.expander("Metadata del modelo entrenado"):
-            st.json(metadata)
-
 
 # ---------------------------------------------------------------------
-# Methodology tab
+# Tab 5: Methodology
 # ---------------------------------------------------------------------
 with tab_method:
-    st.subheader("Cómo llegamos al modelo final")
+    st.subheader("Evolución completa del proyecto")
 
     st.markdown(
         """
-        **1. Datos climáticos.** Se integraron índices ENSO mensuales con
-        precipitación media espacial de ERA5-Land para la región costera
-        seleccionada de Ecuador.
+        **1. Datos iniciales.** Se integraron índices ENSO históricos con
+        precipitación ERA5-Land para una región costera seleccionada de Ecuador.
 
-        **2. Anomalías.** La precipitación se expresó como diferencia respecto
-        de una climatología mensual de referencia. Esto evita que el modelo
-        se limite a aprender que ciertos meses son naturalmente más lluviosos.
+        **2. Anomalías.** La precipitación se expresó respecto de una
+        climatología mensual de referencia 1950–2010 para separar el ciclo
+        estacional normal de desviaciones potencialmente asociadas a ENSO.
 
         **3. Primera formulación.** Se intentó predecir la anomalía de un mes
-        específico a +3 meses. ENSO, lags, precipitación reciente y variables
-        locales no superaron de forma consistente a la climatología.
+        exacto a +3 meses. Los modelos no superaron de manera consistente a
+        climatología.
 
-        **4. Cambio de target.** El problema se reformuló como la anomalía media
-        de los próximos tres meses. Esta escala estacional está mejor alineada
-        con la dinámica temporal de ENSO.
+        **4. Cambio del target.** Se reformuló el problema como la anomalía
+        media de los próximos tres meses, una escala más coherente con la
+        persistencia temporal de ENSO.
 
-        **5. Features S2.** Se utilizaron valores ENSO actuales, medias móviles
-        de tres meses, estacionalidad cíclica y memoria reciente de precipitación.
+        **5. Features S2.** Se incorporaron estado actual de ENSO, medias
+        móviles de 3 meses, estacionalidad cíclica y memoria reciente de
+        precipitación.
 
-        **6. Validación temporal.** Los modelos se compararon respetando el
-        orden cronológico mediante validación temporal y `TimeSeriesSplit`.
+        **6. Modelo académico.** Kernel Ridge fue el mejor modelo ML del
+        benchmark histórico, aunque persistencia siguió siendo un baseline
+        extremadamente competitivo.
 
-        **7. Modelo final.** Kernel Ridge lineal fue el mejor modelo ML del
-        benchmark. El baseline de persistencia permanece visible porque fue
-        especialmente competitivo en 2018–2025.
+        **7. Actualización 2026.** Para llegar hasta agosto de 2026 se
+        actualizaron los índices ENSO con fuentes CPC consistentes y la
+        precipitación mediante ERA5-Land.
+
+        **8. Reentrenamiento operacional.** El cambio de fuente y la reducción
+        del período histórico obligaron a repetir la validación. En el
+        mini-benchmark final, ElasticNet obtuvo el menor RMSE medio en CV
+        temporal pre-2018.
+
+        **9. Outlook Sep–Nov 2026.** ElasticNet produce una señal húmeda de
+        aproximadamente +64.6 mm/mes. Los demás modelos ML también proyectan
+        anomalías positivas, aunque la persistencia permanece cerca de neutral
+        y fue más robusta en el holdout reciente.
         """
     )
 
-    st.markdown("#### Definición del target")
+    st.markdown("#### Target estacional")
     st.latex(
         r"y_t = \frac{A_{t+1}+A_{t+2}+A_{t+3}}{3}"
     )
 
-    st.caption(
-        "A representa la anomalía mensual de precipitación respecto de la climatología."
+    st.markdown("#### Modelo operacional destacado")
+    st.code(
+        """SimpleImputer(strategy="mean")
+    ↓
+StandardScaler()
+    ↓
+ElasticNet(alpha=1.0, l1_ratio=0.5)""",
+        language="text",
+    )
+
+    st.warning(
+        "El outlook 2026 debe interpretarse como una señal experimental. "
+        "La validación temporal muestra que la relación ENSO–precipitación "
+        "no es completamente estable entre períodos."
     )
 
 
@@ -787,6 +851,6 @@ with tab_method:
 st.divider()
 
 st.caption(
-    "Proyecto académico de predicción estacional · "
-    "ENSO + ERA5-Land · Ecuador"
+    "Proyecto académico y extensión operacional · ENSO + ERA5-Land · Ecuador · "
+    "Datos operacionales hasta agosto de 2026"
 )
