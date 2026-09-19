@@ -29,13 +29,12 @@ El objetivo final quedó definido como:
 > **Predecir la anomalía media de precipitación durante los próximos tres meses.**
 
 Matemáticamente:
-
-$
+\[
 y_t =
 \frac{
 A_{t+1} + A_{t+2} + A_{t+3}
 }{3}
-$
+\]
 
 donde \(A_t\) representa la anomalía mensual de precipitación respecto de una climatología de referencia.
 
