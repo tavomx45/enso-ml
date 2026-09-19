@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Virtual environments
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+
+# OS
+.DS_Store
+
+# Secrets / environment
+.env
+.cdsapirc
+
+# Raw climate data
+data/raw/*
+!data/raw/.gitkeep
+
+# Processed data
+data/processed/*
+!data/processed/.gitkeep
+
+# Models
+models/*
+!models/.gitkeep
+
+# Large climate files
+*.nc
+*.nc4
+*.grib
+*.grb

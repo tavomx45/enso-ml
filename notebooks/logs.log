@@ -1,0 +1,132 @@
+2026-09-19 06:55:10,886:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/pycaret/utils/generic.py:845: SyntaxWarning: invalid escape sequence '\P'
+  "C:\ProgramData\Anaconda3\envs\pycaret_dev\lib\site-packages\sktime\forecasting\base\_sktime.py", line 187
+
+2026-09-19 06:55:11,344:WARNING:
+'xgboost' is a soft dependency and not included in the pycaret installation. Install it with: `pip install xgboost`.
+Or install the extras bundle: `pip install pycaret[models]`.
+2026-09-19 06:55:11,344:WARNING:
+'lightgbm' is a soft dependency and not included in the pycaret installation. Install it with: `pip install lightgbm`.
+2026-09-19 06:55:11,344:WARNING:
+'catboost' is a soft dependency and not included in the pycaret installation. Install it with: `pip install catboost`.
+Or install the extras bundle: `pip install pycaret[models]`.
+2026-09-19 06:55:15,857:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/utils/deprecation.py:71: FutureWarning: Class PassiveAggressiveRegressor is deprecated; this is deprecated in version 1.8 and will be removed in 1.10. Use `SGDRegressor(loss='epsilon_insensitive', penalty=None, learning_rate='pa1', eta0 = 1.0)` instead.
+  warnings.warn(msg, category=FutureWarning)
+
+2026-09-19 06:55:15,863:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/utils/deprecation.py:71: FutureWarning: Class PassiveAggressiveRegressor is deprecated; this is deprecated in version 1.8 and will be removed in 1.10. Use `SGDRegressor(loss='epsilon_insensitive', penalty=None, learning_rate='pa1', eta0 = 1.0)` instead.
+  warnings.warn(msg, category=FutureWarning)
+
+2026-09-19 06:55:15,868:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/utils/deprecation.py:71: FutureWarning: Class PassiveAggressiveRegressor is deprecated; this is deprecated in version 1.8 and will be removed in 1.10. Use `SGDRegressor(loss='epsilon_insensitive', penalty=None, learning_rate='pa1', eta0 = 1.0)` instead.
+  warnings.warn(msg, category=FutureWarning)
+
+2026-09-19 06:55:15,873:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/utils/deprecation.py:71: FutureWarning: Class PassiveAggressiveRegressor is deprecated; this is deprecated in version 1.8 and will be removed in 1.10. Use `SGDRegressor(loss='epsilon_insensitive', penalty=None, learning_rate='pa1', eta0 = 1.0)` instead.
+  warnings.warn(msg, category=FutureWarning)
+
+2026-09-19 06:55:15,877:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/utils/deprecation.py:71: FutureWarning: Class PassiveAggressiveRegressor is deprecated; this is deprecated in version 1.8 and will be removed in 1.10. Use `SGDRegressor(loss='epsilon_insensitive', penalty=None, learning_rate='pa1', eta0 = 1.0)` instead.
+  warnings.warn(msg, category=FutureWarning)
+
+2026-09-19 06:55:15,882:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/utils/deprecation.py:71: FutureWarning: Class PassiveAggressiveRegressor is deprecated; this is deprecated in version 1.8 and will be removed in 1.10. Use `SGDRegressor(loss='epsilon_insensitive', penalty=None, learning_rate='pa1', eta0 = 1.0)` instead.
+  warnings.warn(msg, category=FutureWarning)
+
+2026-09-19 06:55:15,887:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/utils/deprecation.py:71: FutureWarning: Class PassiveAggressiveRegressor is deprecated; this is deprecated in version 1.8 and will be removed in 1.10. Use `SGDRegressor(loss='epsilon_insensitive', penalty=None, learning_rate='pa1', eta0 = 1.0)` instead.
+  warnings.warn(msg, category=FutureWarning)
+
+2026-09-19 06:55:15,892:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/utils/deprecation.py:71: FutureWarning: Class PassiveAggressiveRegressor is deprecated; this is deprecated in version 1.8 and will be removed in 1.10. Use `SGDRegressor(loss='epsilon_insensitive', penalty=None, learning_rate='pa1', eta0 = 1.0)` instead.
+  warnings.warn(msg, category=FutureWarning)
+
+2026-09-19 06:55:15,897:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/utils/deprecation.py:71: FutureWarning: Class PassiveAggressiveRegressor is deprecated; this is deprecated in version 1.8 and will be removed in 1.10. Use `SGDRegressor(loss='epsilon_insensitive', penalty=None, learning_rate='pa1', eta0 = 1.0)` instead.
+  warnings.warn(msg, category=FutureWarning)
+
+2026-09-19 06:55:15,901:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/utils/deprecation.py:71: FutureWarning: Class PassiveAggressiveRegressor is deprecated; this is deprecated in version 1.8 and will be removed in 1.10. Use `SGDRegressor(loss='epsilon_insensitive', penalty=None, learning_rate='pa1', eta0 = 1.0)` instead.
+  warnings.warn(msg, category=FutureWarning)
+
+2026-09-19 06:55:22,886:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/linear_model/_huber.py:348: ConvergenceWarning: lbfgs failed to converge after 100 iteration(s) (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+
+Increase the number of iterations to improve the convergence (max_iter=100).
+You might also want to scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  self.n_iter_ = _check_optimize_result("lbfgs", opt_res, self.max_iter)
+
+2026-09-19 06:55:22,911:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/linear_model/_huber.py:348: ConvergenceWarning: lbfgs failed to converge after 100 iteration(s) (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+
+Increase the number of iterations to improve the convergence (max_iter=100).
+You might also want to scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  self.n_iter_ = _check_optimize_result("lbfgs", opt_res, self.max_iter)
+
+2026-09-19 06:55:22,935:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/linear_model/_huber.py:348: ConvergenceWarning: lbfgs failed to converge after 100 iteration(s) (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+
+Increase the number of iterations to improve the convergence (max_iter=100).
+You might also want to scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  self.n_iter_ = _check_optimize_result("lbfgs", opt_res, self.max_iter)
+
+2026-09-19 06:55:22,959:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/linear_model/_huber.py:348: ConvergenceWarning: lbfgs failed to converge after 100 iteration(s) (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+
+Increase the number of iterations to improve the convergence (max_iter=100).
+You might also want to scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  self.n_iter_ = _check_optimize_result("lbfgs", opt_res, self.max_iter)
+
+2026-09-19 06:55:22,983:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/linear_model/_huber.py:348: ConvergenceWarning: lbfgs failed to converge after 100 iteration(s) (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+
+Increase the number of iterations to improve the convergence (max_iter=100).
+You might also want to scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  self.n_iter_ = _check_optimize_result("lbfgs", opt_res, self.max_iter)
+
+2026-09-19 06:55:23,007:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/linear_model/_huber.py:348: ConvergenceWarning: lbfgs failed to converge after 100 iteration(s) (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+
+Increase the number of iterations to improve the convergence (max_iter=100).
+You might also want to scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  self.n_iter_ = _check_optimize_result("lbfgs", opt_res, self.max_iter)
+
+2026-09-19 06:55:23,032:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/linear_model/_huber.py:348: ConvergenceWarning: lbfgs failed to converge after 100 iteration(s) (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+
+Increase the number of iterations to improve the convergence (max_iter=100).
+You might also want to scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  self.n_iter_ = _check_optimize_result("lbfgs", opt_res, self.max_iter)
+
+2026-09-19 06:55:23,056:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/linear_model/_huber.py:348: ConvergenceWarning: lbfgs failed to converge after 100 iteration(s) (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+
+Increase the number of iterations to improve the convergence (max_iter=100).
+You might also want to scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  self.n_iter_ = _check_optimize_result("lbfgs", opt_res, self.max_iter)
+
+2026-09-19 06:55:23,080:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/linear_model/_huber.py:348: ConvergenceWarning: lbfgs failed to converge after 100 iteration(s) (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+
+Increase the number of iterations to improve the convergence (max_iter=100).
+You might also want to scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  self.n_iter_ = _check_optimize_result("lbfgs", opt_res, self.max_iter)
+
+2026-09-19 06:55:23,104:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/linear_model/_huber.py:348: ConvergenceWarning: lbfgs failed to converge after 100 iteration(s) (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+
+Increase the number of iterations to improve the convergence (max_iter=100).
+You might also want to scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  self.n_iter_ = _check_optimize_result("lbfgs", opt_res, self.max_iter)
+
+2026-09-19 06:55:23,129:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/linear_model/_huber.py:348: ConvergenceWarning: lbfgs failed to converge after 100 iteration(s) (status=1):
+STOP: TOTAL NO. OF ITERATIONS REACHED LIMIT
+
+Increase the number of iterations to improve the convergence (max_iter=100).
+You might also want to scale the data as shown in:
+    https://scikit-learn.org/stable/modules/preprocessing.html
+  self.n_iter_ = _check_optimize_result("lbfgs", opt_res, self.max_iter)
+
+2026-09-19 06:57:27,336:WARNING:/home/gustavo-paredes/Documents/Developer/Yachay/enso-ml/.venv/lib/python3.12/site-packages/sklearn/utils/deprecation.py:71: FutureWarning: Class PassiveAggressiveRegressor is deprecated; this is deprecated in version 1.8 and will be removed in 1.10. Use `SGDRegressor(loss='epsilon_insensitive', penalty=None, learning_rate='pa1', eta0 = 1.0)` instead.
+  warnings.warn(msg, category=FutureWarning)
+
